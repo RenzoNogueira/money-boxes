@@ -1,0 +1,47 @@
+:root {
+    --primary-color: #323232;
+    --background-input: #000;
+    --input-color: #fff;
+    --font-color: #cecece;
+    --border-default: 2px outset;
+    --border-color-default: #484848;
+    --border-radius-default: 10px;
+}
+
+.money-text {
+    background-color: transparent !important;
+    border: none !important;
+    font-weight: bold !important;
+    height: fit-content !important;
+}
+
+.form-control, .box, .modal-content {
+    background-color: var(--background-input) !important;
+    color: var(--input-color) !important;
+    border: var(--border-default) var(--border-color-default) !important;
+    border-radius: var(--border-radius-default) !important;
+}
+
+button {
+    background-color: var(--background-input) !important;
+    color: var(--input-color) !important;
+    border: var(--border-default) var(--border-color-default) !important;
+    border-radius: var(--border-radius-default) !important;
+}
+
+input {
+    color: var(--input-color) !important;
+}
+
+.modal-content, .card-body {
+    background-color: var(--primary-color) !important;
+}
+
+.card, .modal-header {
+    background-color: transparent !important;
+    color: var(--font-color) !important;
+}
+
+.modal-header, .modal-footer {
+    border: none !important;
+}
