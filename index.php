@@ -14,7 +14,7 @@
 </head>
 <body>
 <div id="app">
-	<div class="container">
+	<div class="container d-flex align-items-center justify-content-center pt-5">
 		<div class="row">
 			<CAIXINHA v-for="(caixinha, index) in caixinhas" :key="index" :caixinha="caixinha" :index="index"
 					  @remove="removeCaixinha" @edit="editCaixinha"></CAIXINHA>
@@ -116,7 +116,7 @@
 			}
 		},
 		template: `
-          <div class="col-md-5">
+          <div class="col-md-5 m-1">
           <div class="card">
             <div class="card-body box">
               <h5 class="card-title">{{ caixinha.titulo }}</h5>
