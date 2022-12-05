@@ -47,30 +47,29 @@
         data() {
             return {
                 boxEditing: {},
-                caixinha: {
-                    titulo: '',
-                    meta: '',
-                    guardado: ''
-                },
                 caixinhas: [{
                     titulo: 'Poupança 1',
                     meta: '1.000,00',
-                    guardado: '500,00'
+                    guardado: '500,00',
+                    date: new Date("2022-12-05T12:00:00"),
                 },
                     {
                         titulo: 'Poupança 2',
                         meta: '1.000,00',
-                        guardado: '500,00'
+                        guardado: '500,00',
+                        date: new Date("2022-12-03T12:00:00"),
                     },
                     {
                         titulo: 'Poupança 3',
                         meta: '1.000,00',
-                        guardado: '500,00'
+                        guardado: '500,00',
+                        date: new Date("2022-12-02T12:00:00"),
                     },
                     {
                         titulo: 'Poupança 4',
                         meta: '100,00',
-                        guardado: '500,00'
+                        guardado: '500,00',
+                        date: new Date("2022-11-12T12:00:00"),
                     }
                 ]
             }
@@ -87,7 +86,8 @@
                 SELF.caixinhas.push({
                     titulo: caixinha.titulo,
                     meta: caixinha.meta,
-                    guardado: caixinha.guardado
+                    guardado: caixinha.guardado,
+                    date: new Date()
                 });
                 SELF.caixinha.titulo = '';
                 SELF.caixinha.meta = '';
@@ -121,7 +121,9 @@
             <div class="card-body box">
               <h5 class="card-title">{{ caixinha.titulo }}</h5>
               <div class="row">
-                <span class="col-6"><p class="card-text">Meta:</p></span> <span class="col-6"><input class="money-text" disabled :value="'R$ ' + caixinha.meta"></span>
+                <span class="col-6"><p class="card-text">Meta:</p></span> <span class="col-6"><input class="money-text"
+                                                                                                     disabled
+                                                                                                     :value="'R$ ' + caixinha.meta"></span>
               </div>
               <div class="row">
                 <span class="col-6"><p class="card-text">Guardado: R$</p></span> <span class="col-6"><input
@@ -135,7 +137,9 @@
                     Remover
                   </button>
                 </div>
-                <small class="text-muted">9 mins</small>
+                <!-- Calcula a diferença entre a data de hoje e a data da caixinha, incluindo os meses e anos -->
+                <small
+                    class="text-muted">{{ Math.floor((caixinha.date - new Date()) / (1000 * 60 * 60 * 24)) * -1 !== 0 ? Math.floor((caixinha.date - new Date()) / (1000 * 60 * 60 * 24)) * -1 + ' dia(s)' : 'Hoje' }}</small>
               </div>
             </div>
           </div>
@@ -214,10 +218,9 @@
             moneyMaskInput(value) { // Aplica máscara de dinheiro no input
                 value = value.replace('.', '').replace(',', '').replace(/\D/g, '')
                 const options = {minimumFractionDigits: 2}
-                const result = new Intl.NumberFormat('pt-BR', options).format(
+                return new Intl.NumberFormat('pt-BR', options).format(
                     parseFloat(value) / 100
                 )
-                return result
             }
         }
     })
