@@ -19,10 +19,10 @@
             <CAIXINHA v-for="(caixinha, index) in caixinhas" :key="index" :caixinha="caixinha" :index="index"
                       @remove="removeCaixinha" @edit="editCaixinha"></CAIXINHA>
             <div class="col-12 mt-3">
-                <!-- Button trigger modal -->
-                <button type="button" class="btn btn-outline-success" data-bs-toggle="modal"
-                        data-bs-target="#createBox">
-                    Nova Caixinha
+                <!-- Botão para acionar modal de cadastro -->
+                <button type="button" class="btn btn-success btn-floating position-fixed bottom-0 end-0 m-4"
+                        data-bs-target="#createBox" data-bs-toggle="tooltip" data-bs-placement="left" title="Nova Caixinha" @click="openModalCreateCaixinha">
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
@@ -105,6 +105,9 @@
                 this.boxEditing.guardado = box.guardado
                 this.boxEditing.index = index
                 $("#createBox").modal("show")
+            },
+            openModalCreateCaixinha() { // Abre o modal de criar caixinha
+                $("#createBox").modal("show")
             }
         }
     });
@@ -168,16 +171,16 @@
           <h5 class="card-title">Adicionar nova poupança</h5>
           <form>
             <div class="form-group mt-2">
-              <label for="titulo">Título</label> <input type="text" class="form-control" id="titulo"
-                                                        v-model="box.titulo">
+              <input type="text" class="form-control" id="titulo"
+                     v-model="box.titulo" placeholder="Título">
             </div>
             <div class="form-group mt-2">
-              <label for="meta">Meta</label> <input type="text" class="form-control money" id="meta"
-                                                    v-model="box.meta">
+              <input type="text" class="form-control money" id="meta"
+                     v-model="box.meta" placeholder="Meta">
             </div>
             <div class="form-group mt-2">
-              <label for="guardado">Guardado</label> <input type="text" class="form-control money"
-                                                            id="guardado" v-model="box.guardado">
+              <input type="text" class="form-control money"
+                     id="guardado" v-model="box.guardado" placeholder="Guardado">
             </div>
           </form>
         </div>
@@ -222,6 +225,15 @@
                     parseFloat(value) / 100
                 )
             }
+        },
+
+        mounted() {
+            window.addEventListener('load', () => {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                })
+            })
         }
     })
     app.mount('#app');
