@@ -39,6 +39,7 @@ input {
 
 .card, .modal-header {
     background-color: transparent !important;
+    border: none !important;
     color: var(--font-color) !important;
 }
 
