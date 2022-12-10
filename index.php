@@ -169,7 +169,7 @@
                 e.preventDefault();
                 console.log('Clique direito desativado')
                 // Pega o id do elemento clicado
-                // TODO: Imoplemetar a função de editar caixinha pelo clique direito
+                // TODO: Implemetar a função de editar caixinha pelo clique direito
                 const id = e.target.id
                 console.log(id)
             });
