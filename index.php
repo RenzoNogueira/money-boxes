@@ -21,7 +21,8 @@
             <div class="col-12 mt-3">
                 <!-- Botão para acionar modal de cadastro -->
                 <button type="button" class="btn btn-success btn-floating position-fixed bottom-0 end-0 m-4"
-                        data-bs-target="#createBox" data-bs-toggle="tooltip" data-bs-placement="left" title="Nova Caixinha" @click="openModalCreateCaixinha">
+                        data-bs-target="#createBox" data-bs-toggle="tooltip" data-bs-placement="left"
+                        title="Nova Caixinha" @click="openModalCreateCaixinha">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
@@ -31,6 +32,12 @@
     <!-- Modal -->
     <MODAL-CREATE-BOX :box="boxEditing" @edit="editCaixinha" @update-box="updateBox"
                       @create-box="addCaixinha"></MODAL-CREATE-BOX>
+
+    <AUTH v-show="auth == false" @error="addAlert"></AUTH>
+
+    <div class="alerts" style="position: fixed; top: 0; right: 0; z-index: 9999; color: white">
+        <alert v-for="(alert, index) in alerts" :key="index" :alert="alert" @remove="removeAlert"></alert>
+    </div>
 </div>
 <script src="https://kit.fontawesome.com/274af9ab8f.js" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
@@ -46,26 +53,35 @@
     const app = createApp({
         data() {
             return {
-                boxEditing: {},
+                auth: false,
+                alerts: [],
+                boxEditing: {
+                    meta: '0,00',
+                    guardado: '0,00',
+                },
                 caixinhas: [{
+                    id: 1,
                     titulo: 'Poupança 1',
                     meta: '1.000,00',
                     guardado: '500,00',
                     date: new Date("2022-12-05T12:00:00"),
                 },
                     {
+                        id: 2,
                         titulo: 'Poupança 2',
                         meta: '1.000,00',
                         guardado: '500,00',
                         date: new Date("2022-12-03T12:00:00"),
                     },
                     {
+                        id: 3,
                         titulo: 'Poupança 3',
                         meta: '1.000,00',
                         guardado: '500,00',
                         date: new Date("2022-12-02T12:00:00"),
                     },
                     {
+                        id: 4,
                         titulo: 'Poupança 4',
                         meta: '100,00',
                         guardado: '500,00',
@@ -83,6 +99,7 @@
             },
             addCaixinha(caixinha) {
                 const SELF = this
+                console.log(caixinha)
                 SELF.caixinhas.push({
                     titulo: caixinha.titulo,
                     meta: caixinha.meta,
@@ -107,10 +124,107 @@
                 $("#createBox").modal("show")
             },
             openModalCreateCaixinha() { // Abre o modal de criar caixinha
+                this.boxEditing = { // Limpa os campos do modal
+                    meta: '0,00',
+                    guardado: '0,00',
+                }
                 $("#createBox").modal("show")
-            }
+            },
+            removeAlert(index) {
+                this.alerts.splice(index, 1);
+            },
+            addAlert(alert) {
+                const SELF = this
+                SELF.alerts.push(alert);
+                // Se tiver mais de dois alertas, remove o primeiro
+                if (SELF.alerts.length > 2) {
+                    SELF.alerts.splice(0, 1);
+                }
+                const removeAlert = setInterval(() => {
+                    SELF.alerts.splice(0, 1);
+                    clearInterval(removeAlert)
+                }, 5000)
+            },
+        },
+
+        mounted() {
+            window.addEventListener('load', () => {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                })
+
+                // Veridica se existe o parâmetro de auteenticação na URL
+                let urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('auth')) {
+                    this.auth = true
+                } else {
+                    this.auth = false
+                    $("#auth").modal("show")
+                    $('.modal-backdrop').css('opacity', '0.92')
+                }
+            })
+            // Desativa o click com o botão direito do mouse
+            $(document).bind("contextmenu", function (e) {
+                e.preventDefault();
+                console.log('Clique direito desativado')
+                // Pega o id do elemento clicado
+                // TODO: Imoplemetar a função de editar caixinha pelo clique direito
+                const id = e.target.id
+                console.log(id)
+            });
         }
     });
+
+    // Componente de login
+    app.component('auth', {
+        template: `
+          <div class="modal fade" id="auth" tabindex="-1" aria-labelledby="authLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="authLabel">Autenticação</h5>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3 user">
+                  <label for="authInputUserName" class="form-label">Usuário</label>
+                  <input type="text" class="form-control" id="authInputUserName" placeholder="Usuário" v-model="auth.user">
+                </div>
+                <div class="mb-3 password">
+                  <label for="authInputPassword" class="form-label">Senha</label>
+                  <input type="password" class="form-control" id="authInputPassword" placeholder="Senha"
+                         v-model="auth.password">
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @click="authUser">Autenticar</button>
+              </div>
+            </div>
+          </div>
+          </div>
+        `,
+        data() {
+            return {
+                auth: {
+                    user: '',
+                    password: ''
+                }
+            }
+        },
+        methods: {
+            authUser() {
+                const SELF = this
+                if (this.auth.user === 'admin' && this.auth.password === 'admin') {
+                    window.location.href = window.location.href + '?auth=true'
+                } else {
+                    SELF.$emit('error', {
+                        type: 'danger',
+                        message: 'Usuário ou senha inválidos'
+                    })
+                }
+            }
+        },
+    })
     app.component('caixinha', {
         props: ['caixinha', 'index'],
         data() {
@@ -120,7 +234,7 @@
         },
         template: `
           <div class="col-md-6 mt-1">
-          <div class="card">
+          <div class="card caixinha" :id="caixinha.id">
             <div class="card-body box">
               <h5 class="card-title">{{ caixinha.titulo }}</h5>
               <div class="row">
@@ -154,48 +268,53 @@
             }
         }
     });
-    app.component("modal-create-box", {
-        props: ["box", 'index'],
-        template: `<div class="modal fade" id="createBox" tabindex="-1" aria-labelledby="createBoxModalLabel" aria-hidden="true">
-<div class="modal-dialog modal-dialog-centered">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h5 class="modal-title" id="createBoxModalLabel">Modal title</h5>
-      <button type="button" class="btn" data-bs-dismiss="modal">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Adicionar nova poupança</h5>
-          <form>
-            <div class="form-group mt-2">
-              <input type="text" class="form-control" id="titulo"
-                     v-model="box.titulo" placeholder="Título">
+    app.component('modal-create-box', {
+        props: ["box"],
+        template: `
+          <div class="modal fade" id="createBox" tabindex="-1" aria-labelledby="createBoxModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="createBoxModalLabel">{{ box.index != undefined ? 'Editar' : 'Criar' }}
+                  caixinha</h5>
+                <button type="button" class="btn" data-bs-dismiss="modal">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title">Adicionar nova poupança</h5>
+                    <form>
+                      <div class="form-group mt-2">
+                        <label for="titulo">Título</label>
+                        <input type="text" class="form-control" id="titulo"
+                               v-model="box.titulo" placeholder="Título">
+                      </div>
+                      <div class="form-group mt-2">
+                        <label for="meta">Meta</label>
+                        <input type="text" class="form-control money" id="meta"
+                               v-model="box.meta" placeholder="Meta">
+                      </div>
+                      <div class="form-group mt-2">
+                        <label for="guardado">Guardado</label>
+                        <input type="text" class="form-control money"
+                               id="guardado" v-model="box.guardado" placeholder="Guardado">
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button v-if="box.titulo" type="button" data-bs-dismiss="modal" @click="update" class="btn btn-success">
+                  Salvar
+                </button>
+                <button v-else type="button" data-bs-dismiss="modal" @click="create" class="btn btn-success">Adicionar
+                </button>
+              </div>
             </div>
-            <div class="form-group mt-2">
-              <input type="text" class="form-control money" id="meta"
-                     v-model="box.meta" placeholder="Meta">
-            </div>
-            <div class="form-group mt-2">
-              <input type="text" class="form-control money"
-                     id="guardado" v-model="box.guardado" placeholder="Guardado">
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button v-if="box.titulo" type="button" data-bs-dismiss="modal" @click="update" class="btn btn-success">
-        Salvar
-      </button>
-      <button v-else type="button" data-bs-dismiss="modal" @click="create" class="btn btn-success">Adicionar
-      </button>
-    </div>
-  </div>
-</div>
-</div>
+          </div>
+          </div>
         `,
 
         watch: {
@@ -225,16 +344,18 @@
                     parseFloat(value) / 100
                 )
             }
-        },
-
-        mounted() {
-            window.addEventListener('load', () => {
-                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-                tooltipTriggerList.map(function (tooltipTriggerEl) {
-                    return new bootstrap.Tooltip(tooltipTriggerEl)
-                })
-            })
         }
+    })
+    app.component('alert', {
+        props: ['alert'],
+        template: `
+          <div class="alert alert-{{ alert.type }} alert-dismissible fade show" role="alert">
+          {{ alert.message }}
+          <button type="button" class="btn" data-bs-dismiss="alert">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+          </div>
+        `
     })
     app.mount('#app');
 </script>
