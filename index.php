@@ -33,7 +33,7 @@
     <MODAL-CREATE-BOX :box="boxEditing" @edit="editCaixinha" @update-box="updateBox"
                       @create-box="addCaixinha"></MODAL-CREATE-BOX>
 
-    <AUTH v-show="auth == false" @error="addAlert"></AUTH>
+    <AUTH v-show="auth == false" @save-user="saveUser"></AUTH>
 
     <div class="alerts" style="position: fixed; top: 0; right: 0; z-index: 9999; color: white">
         <alert v-for="(alert, index) in alerts" :key="index" :alert="alert" @remove="removeAlert"></alert>
@@ -55,6 +55,7 @@
             return {
                 auth: false,
                 alerts: [],
+                user: {},
                 boxEditing: {
                     meta: '0,00',
                     guardado: '0,00',
@@ -97,9 +98,9 @@
                 this.caixinhas[index].guardado = caixinha.guardado
                 $('.money').mask("#.##0,00", {reverse: true});
             },
+
             addCaixinha(caixinha) {
                 const SELF = this
-                console.log(caixinha)
                 SELF.caixinhas.push({
                     titulo: caixinha.titulo,
                     meta: caixinha.meta,
@@ -111,9 +112,11 @@
                 SELF.caixinha.guardado = '';
                 SELF.boxEditing = SELF.caixinha
             },
+
             removeCaixinha(index) {
                 this.caixinhas.splice(index, 1);
             },
+
             editCaixinha(box) {
                 const index = box.index
                 box = box.box
@@ -123,6 +126,7 @@
                 this.boxEditing.index = index
                 $("#createBox").modal("show")
             },
+
             openModalCreateCaixinha() { // Abre o modal de criar caixinha
                 this.boxEditing = { // Limpa os campos do modal
                     meta: '0,00',
@@ -130,9 +134,11 @@
                 }
                 $("#createBox").modal("show")
             },
+
             removeAlert(index) {
                 this.alerts.splice(index, 1);
             },
+
             addAlert(alert) {
                 const SELF = this
                 SELF.alerts.push(alert);
@@ -145,19 +151,72 @@
                     clearInterval(removeAlert)
                 }, 5000)
             },
+
+            saveUser(dataUser) { // Savar o usuário no Cookie
+                const SELF = this
+                $.post('php/auth.php', {
+                    auth: dataUser
+                }, function (data) {
+                    data = JSON.parse(data)
+                    if (data.success) {
+                        SELF.auth = true
+                        SELF.user = data.success
+                        console.log(SELF.user)
+                        // Sava em COOKIE com a data limite de  uma semana
+                        document.cookie = `user=${JSON.stringify(SELF.user)}; expires=${new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000)}; path=/`
+                        SELF.redirectLogin()
+                    } else {
+                        SELF.addAlert({
+                            type: 'danger',
+                            message: 'Erro ao logar!'
+                        })
+                    }
+                })
+            },
+
+            getUser() { // Pega o usuário do COOKIE
+                const SELF = this
+                const cookies = document.cookie.split(';')
+                if (cookies.length > 0) {
+                    cookies.forEach(cookie => {
+                        if (cookie.includes('user')) {
+                            SELF.user = JSON.parse(cookie.split('=')[1])
+                        }
+                    })
+                    // Se existir o Cookie, e não tiver parâmetros na url, redirecionar para a página do autênticar usuário.
+                    if (SELF.user.username && SELF.user.name && !window.location.href.includes('auth')) {
+                        SELF.auth = true
+                        // SELF.redirectLogin()
+                    }
+                }
+            },
+            redirectLogin() {
+                console.log(this.user)
+                window.location.href = window.location.href + '?user=' + this.user.username
+            }
         },
 
         mounted() {
+            const SELF = this
+            SELF.getUser(); // Recupera o usuário
             window.addEventListener('load', () => {
-                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
                 tooltipTriggerList.map(function (tooltipTriggerEl) {
                     return new bootstrap.Tooltip(tooltipTriggerEl)
                 })
 
                 // Veridica se existe o parâmetro de auteenticação na URL
                 let urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.has('auth')) {
-                    this.auth = true
+                if (urlParams.has('user')) {
+                    // Verifica se o usuário é o mesmo que está logado analisando o COOKIE
+                    if (SELF.user.username !== urlParams.get('user')) {
+                        SELF.auth = false
+                        SELF.user = {}
+                        document.cookie = `user=; expires=${new Date(new Date().getTime() - 1)}; path=/`
+                        window.location.href = window.location.href.split('?')[0]
+                    } else {
+                        SELF.auth = true
+                    }
                 } else {
                     this.auth = false
                     $("#auth").modal("show")
@@ -179,7 +238,8 @@
     // Componente de login
     app.component('auth', {
         template: `
-          <div class="modal fade" id="auth" tabindex="-1" aria-labelledby="authLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+          <div class="modal fade" id="auth" tabindex="-1" aria-labelledby="authLabel" aria-hidden="true"
+               data-bs-backdrop="static" data-bs-keyboard="false">
           <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
               <div class="modal-header">
@@ -188,7 +248,8 @@
               <div class="modal-body">
                 <div class="mb-3 user">
                   <label for="authInputUserName" class="form-label">Usuário</label>
-                  <input type="text" class="form-control" id="authInputUserName" placeholder="Usuário" v-model="auth.user">
+                  <input type="text" class="form-control" id="authInputUserName" placeholder="Usuário"
+                         v-model="auth.user">
                 </div>
                 <div class="mb-3 password">
                   <label for="authInputPassword" class="form-label">Senha</label>
@@ -214,15 +275,12 @@
         methods: {
             authUser() {
                 const SELF = this
-                if (this.auth.user === 'admin' && this.auth.password === 'admin') {
-                    window.location.href = window.location.href + '?auth=true'
-                } else {
-                    SELF.$emit('error', {
-                        type: 'danger',
-                        message: 'Usuário ou senha inválidos'
-                    })
-                }
-            }
+                SELF.saveUser(this.auth.user)
+            },
+            saveUser(dataUser) {
+                const SELF = this
+                SELF.$emit('save-user', SELF.auth)
+            },
         },
     })
     app.component('caixinha', {
