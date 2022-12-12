@@ -18,14 +18,20 @@
         <div class="row">
             <CAIXINHA v-for="(caixinha, index) in caixinhas" :key="index" :caixinha="caixinha" :index="index"
                       @remove="removeCaixinha" @edit="editCaixinha"></CAIXINHA>
-            <div class="col-12 mt-3">
-                <!-- Botão para acionar modal de cadastro -->
-                <button type="button" class="btn btn-success btn-floating position-fixed bottom-0 end-0 m-4"
-                        data-bs-target="#createBox" data-bs-toggle="tooltip" data-bs-placement="left"
-                        title="Nova Caixinha" @click="openModalCreateCaixinha">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
+        </div>
+
+        <div class="d-flex flex-column position-fixed bottom-0 end-0 m-4">
+            <!-- Botão para acionar modal de cadastro -->
+            <button type="button" class="btn btn-success btn-floating mb-2 d-none" id="add-box"
+                    data-bs-target="#createBox" data-bs-toggle="tooltip" data-bs-placement="left"
+                    title="Nova Caixinha" @click="openModalCreateCaixinha">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button type="button" class="btn btn-success btn-floating" @click="toogleMenu"
+                    data-bs-toggle="tooltip" data-bs-placement="left"
+                    title="Ações">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
     </div>
 
@@ -92,6 +98,9 @@
             }
         },
         methods: {
+            toogleMenu() {
+                $('#add-box').toggleClass('d-none');
+            },
             updateBox(caixinha, index) {
                 this.caixinhas[index].titulo = caixinha.titulo
                 this.caixinhas[index].meta = caixinha.meta
