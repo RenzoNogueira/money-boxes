@@ -179,14 +179,15 @@
                 const cookies = document.cookie.split(';')
                 if (cookies.length > 0) {
                     cookies.forEach(cookie => {
+                        // Se existir o cookie user e não estiver logado
                         if (cookie.includes('user')) {
                             SELF.user = JSON.parse(cookie.split('=')[1])
                         }
                     })
                     // Se existir o Cookie, e não tiver parâmetros na url, redirecionar para a página do autênticar usuário.
-                    if (SELF.user.username && SELF.user.name && !window.location.href.includes('auth')) {
+                    if (SELF.user.username && SELF.user.name && !window.location.href.includes('user')) {
                         SELF.auth = true
-                        // SELF.redirectLogin()
+                        SELF.redirectLogin()
                     }
                 }
             },
